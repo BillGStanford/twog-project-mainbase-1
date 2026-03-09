@@ -5,7 +5,7 @@ import { Copy, Check, Share2, ExternalLink, ImageDown, Quote } from "lucide-reac
 
 /* ── DESIGN TOKENS ── */
 const CAT: Record<string, { color: string; bg: string; border: string; label: string }> = {
-  violence:      { color: "#991b1b", bg: "#fef2f2", border: "#fee2e2", label: "Violence & Genocide" },
+  violence:      { color: "#991b1b", bg: "#fef2f2", border: "#7a7a7a", label: "Violence & Genocide" },
   slavery:       { color: "#9a3412", bg: "#fff7ed", border: "#ffedd5", label: "Slavery" },
   women:         { color: "#5b21b6", bg: "#f5f3ff", border: "#ede9fe", label: "Women" },
   punishment:    { color: "#92400e", bg: "#fffbeb", border: "#fef3c7", label: "Punishment" },
@@ -55,96 +55,119 @@ export default function VerseCard({ verse, compact = false, featured = false }: 
     setTimeout(() => setShared(false), 2200);
   };
 
-  /* ── CANVAS BUILDER (Restored from 295 line version) ── */
+  /* ── CANVAS BUILDER (Aesthetic Social Media Design) ── */
   const buildCanvas = (): HTMLCanvasElement => {
     const W = 1080, H = 1080;
     const canvas = document.createElement("canvas");
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext("2d")!;
 
-    // 1. Sky blue gradient background
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, "#d6eaf8");
-    grad.addColorStop(1, "#f7f9fc");
+    // 1. Background: Subtle Gradient based on category
+    // We make the background very light version of the category color
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0, "#ffffff");
+    grad.addColorStop(1, style.bg); // Fades into the category's light bg color
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // 2. Subtle ray pattern
-    for (let i = 0; i < 36; i++) {
-      const angle = (i / 36) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.moveTo(W * 1.1, -H * 0.1);
-      ctx.lineTo(W * 1.1 + Math.cos(angle) * W * 2, -H * 0.1 + Math.sin(angle) * H * 2);
-      ctx.lineTo(W * 1.1 + Math.cos(angle + Math.PI / 36) * W * 2, -H * 0.1 + Math.sin(angle + Math.PI / 36) * H * 2);
-      ctx.closePath();
-      ctx.fillStyle = i % 2 === 0 ? "rgba(255,255,255,.4)" : "rgba(214,234,248,.4)";
-      ctx.fill();
-    }
-
-    // 3. Top banner
-    ctx.fillStyle = "#0f5a8a";
-    ctx.fillRect(0, 0, W, 80);
-    ctx.fillStyle = "#f0b429";
-    ctx.fillRect(0, 80, W, 8);
-
-    // 4. Branding
-    ctx.fillStyle = "#f0b429";
-    ctx.font = "bold 52px Impact, sans-serif";
-    ctx.fillText("TWOG", 52, 58);
-    ctx.fillStyle = "rgba(255,255,255,.6)";
-    ctx.font = "500 22px Inter, sans-serif";
-    ctx.fillText("twog.io — The Word of God", 180, 55);
-
-    // 5. Category Badge
-    ctx.fillStyle = style.bg;
+    // 2. Decorative background elements (Subtle circles)
+    ctx.save();
+    ctx.globalAlpha = 0.05;
+    ctx.fillStyle = style.color;
     ctx.beginPath();
-    (ctx as any).roundRect?.(52, 116, 320, 52, 26) ?? ctx.rect(52, 116, 320, 52);
+    ctx.arc(W * 0.1, H * 0.1, 300, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = style.border;
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(W * 0.9, H * 0.9, 400, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 3. Top Branding
+    ctx.fillStyle = "#94a3b8"; // Muted slate
+    ctx.font = "600 24px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("THE WORD OF GOD", W / 2, 60);
+
+    // 4. Main Floating Card
+    const cardPadding = 60;
+    const cardW = W - (cardPadding * 2);
+    const cardH = H - 180; // Leave room for top/bottom branding
+    const cardX = cardPadding;
+    const cardY = 90;
+
+    // Drop Shadow
+    ctx.shadowColor = "rgba(0, 0, 0, 0.08)";
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 20;
+
+    // Card Body (White)
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    (ctx as any).roundRect(cardX, cardY, cardW, cardH, 40);
+    ctx.fill();
+
+    // Reset Shadow for inner content
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // 5. Card Accent Line (Top)
     ctx.fillStyle = style.color;
-    ctx.font = "700 22px Inter, sans-serif";
-    ctx.fillText(style.label.toUpperCase(), 76, 150);
+    ctx.beginPath();
+    (ctx as any).roundRect(cardX, cardY, cardW, 12, { topLeft: 40, topRight: 40, bottomLeft: 0, bottomRight: 0 });
+    ctx.fill();
 
-    // 6. Subcategory
-    ctx.fillStyle = "#5a7a9a";
-    ctx.font = "500 20px Inter, sans-serif";
-    ctx.fillText(verse.subcategory, 52, 204);
+    // 6. Category Label (Inside Card, Top)
+    ctx.fillStyle = "#cbd5e1"; // Light grey text
+    ctx.font = "bold 18px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(style.label.toUpperCase(), W / 2, cardY + 60);
 
-    // 7. Big Quote Mark
-    ctx.fillStyle = style.color;
-    ctx.globalAlpha = .15;
-    ctx.font = "bold 200px Georgia, serif";
-    ctx.fillText("\u201C", 34, 380);
-    ctx.globalAlpha = 1;
-
-    // 8. Text Wrapping Logic
-    ctx.fillStyle = "#0d1b2a";
-    ctx.font = "italic 400 38px 'Georgia', serif";
+    // 7. The Quote
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#1e293b"; // Dark slate for text
+    ctx.font = "italic 400 46px Georgia, serif"; // Elegant Serif
+    
+    // Text Wrapping Logic
     const words = verse.text.split(" ");
-    let line = "", y = 310;
+    let line = "";
+    const maxWidth = cardW - 100; // Side padding
+    let y = cardY + 160; // Start text lower
+    const lineHeight = 68;
+    const maxY = cardY + cardH - 140; // Stop before footer
+
     for (const w of words) {
       const test = line + w + " ";
-      if (ctx.measureText(test).width > W - 110 && line) {
-        ctx.fillText(line.trim(), 52, y);
-        line = w + " "; y += 56;
-        if (y > 860) { ctx.fillText("…", 52, y); break; }
+      if (ctx.measureText(test).width > maxWidth && line) {
+        ctx.fillText(line.trim(), cardX + 50, y);
+        line = w + " "; 
+        y += lineHeight;
+        if (y > maxY) {
+           ctx.fillText("…", cardX + 50, y); break; 
+        }
       } else { line = test; }
     }
-    if (y <= 860) ctx.fillText(line.trim(), 52, y);
+    if (y <= maxY) ctx.fillText(line.trim(), cardX + 50, y);
 
-    // 9. Reference
+    // 8. Divider Line
+    ctx.strokeStyle = "#f1f5f9";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cardX + 50, cardY + cardH - 90);
+    ctx.lineTo(cardX + cardW - 50, cardY + cardH - 90);
+    ctx.stroke();
+
+    // 9. Reference (Bottom of Card)
+    ctx.textAlign = "center";
     ctx.fillStyle = style.color;
-    ctx.font = "700 28px Inter, sans-serif";
-    ctx.fillText("— " + verse.reference, 52, H - 90);
+    ctx.font = "bold 32px Inter, sans-serif";
+    ctx.fillText(verse.reference.toUpperCase(), W / 2, cardY + cardH - 40);
 
-    // 10. Bottom border
-    ctx.fillStyle = "#f0b429";
-    ctx.fillRect(0, H - 50, W, 50);
-    ctx.fillStyle = "#0f5a8a";
-    ctx.font = "600 22px Inter, sans-serif";
-    ctx.fillText("The Word of God — unedited, unchosen, uncensored", 52, H - 18);
+    // 10. Bottom Branding (Outside Card)
+    ctx.fillStyle = "#64748b";
+    ctx.font = "500 20px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("twog.io", W / 2, H - 40);
 
     return canvas;
   };
@@ -158,14 +181,12 @@ export default function VerseCard({ verse, compact = false, featured = false }: 
         if (!blob) return;
         const file = new File([blob], `twog-${verse.id}.png`, { type: "image/png" });
         
-        // Try Native Share first
         if (navigator.canShare?.({ files: [file] })) {
           navigator.share({ files: [file], title: verse.reference, text: verse.shareText })
             .catch(() => {});
           return;
         }
         
-        // Fallback: Open in new tab for Long Press
         const url = URL.createObjectURL(blob);
         const win = window.open(url, "_blank");
         if (win) toast("Long-press the image to Save");
@@ -175,7 +196,6 @@ export default function VerseCard({ verse, compact = false, featured = false }: 
         }
       }, "image/png", 0.95);
     } else {
-      // Desktop direct download
       const a = document.createElement("a");
       a.download = `twog-${verse.id}.png`;
       a.href = canvas.toDataURL("image/png");
