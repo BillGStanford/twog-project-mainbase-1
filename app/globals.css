@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ─────────────────────────────────────────────────────────
+   Sky blue + golden yellow + crisp white — institutional & bold
+   like a religious pamphlet crossed with a tabloid newspaper
+   ──────────────────────────────────────────────────────────────────────── */
+:root {
+  --sky:        #1a7abf;   /* deep sky blue — dominant brand colour         */
+  --sky-light:  #d6eaf8;   /* very light sky — card backgrounds             */
+  --sky-mid:    #5baade;   /* mid blue — borders, secondary elements        */
+  --sky-dark:   #0f5a8a;   /* dark blue — nav, heavy accents                */
+  --gold:       #f0b429;   /* warm gold — the cross / highlight             */
+  --gold-dark:  #c8861a;   /* darker gold — borders on gold elements        */
+  --gold-light: #fef3cd;   /* pale gold — subtle backgrounds                */
+  --white:      #ffffff;
+  --off-white:  #f7f9fc;   /* page background                               */
+  --ink:        #0d1b2a;   /* almost-black text                             */
+  --ink-mid:    #2c4a6e;   /* medium blue-ink                               */
+  --ink-muted:  #5a7a9a;   /* muted label text                              */
+  --border:     #c2d9ee;   /* light blue border                             */
+  --border-mid: #8bb8d8;
+
+  --font-display: 'Bebas Neue', Impact, 'Arial Narrow', sans-serif;
+  --font-serif:   'Source Serif 4', Georgia, serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+
+  /* category colours — bright, game-like, high contrast on white */
+  --red:    #dc2626;
+  --orange: #ea580c;
+  --purple: #7c3aed;
+  --amber:  #d97706;
+  --blue:   #1d4ed8;
+  --pink:   #be185d;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--off-white);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(ellipse at 60% 0%, rgba(26,122,191,.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 0% 80%, rgba(240,180,41,.06) 0%, transparent 50%);
+  min-height: 100vh;
+}
+
+/* Subtle ray pattern on the page bg — mirrors the logo sunburst */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: repeating-conic-gradient(
+    rgba(26,122,191,.025) 0deg 5deg,
+    transparent 5deg 10deg
+  );
+  background-size: 100% 100%;
+  background-position: 70% -20%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+* { position: relative; z-index: 1; }
+
+::selection { background: rgba(240,180,41,.35); color: var(--ink); }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--sky-light); }
+::-webkit-scrollbar-thumb { background: var(--sky-mid); border-radius: 3px; }
+
+/* ── Typography helpers ── */
+.font-display { font-family: var(--font-display) !important; letter-spacing: .02em; }
+.font-serif   { font-family: var(--font-serif) !important; }
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #f0b429 0%, #e07b10 60%, #f0b429 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-gradient-sky {
+  background: linear-gradient(135deg, #1a7abf 0%, #0f5a8a 60%, #5baade 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fadeUp .4s ease forwards; }
+
+.stagger > *:nth-child(1)  { opacity:0; animation: fadeUp .4s ease .04s forwards; }
+.stagger > *:nth-child(2)  { opacity:0; animation: fadeUp .4s ease .08s forwards; }
+.stagger > *:nth-child(3)  { opacity:0; animation: fadeUp .4s ease .12s forwards; }
+.stagger > *:nth-child(4)  { opacity:0; animation: fadeUp .4s ease .16s forwards; }
+.stagger > *:nth-child(5)  { opacity:0; animation: fadeUp .4s ease .20s forwards; }
+.stagger > *:nth-child(6)  { opacity:0; animation: fadeUp .4s ease .24s forwards; }
+.stagger > *:nth-child(7)  { opacity:0; animation: fadeUp .4s ease .28s forwards; }
+.stagger > *:nth-child(8)  { opacity:0; animation: fadeUp .4s ease .32s forwards; }
+.stagger > *:nth-child(9)  { opacity:0; animation: fadeUp .4s ease .36s forwards; }
+.stagger > *:nth-child(10) { opacity:0; animation: fadeUp .4s ease .40s forwards; }
+
+/* ── Shadows ── */
+.shadow-sky  { box-shadow: 0 4px 24px rgba(26,122,191,.18), 0 1px 4px rgba(26,122,191,.12); }
+.shadow-gold { box-shadow: 0 4px 24px rgba(240,180,41,.30), 0 1px 4px rgba(240,180,41,.18); }
+.shadow-card { box-shadow: 0 2px 12px rgba(26,122,191,.10), 0 1px 3px rgba(0,0,0,.06); }
+
+/* ── Interactive ── */
+.card-lift {
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 32px rgba(26,122,191,.20), 0 2px 8px rgba(0,0,0,.08);
+}
+.press:active { transform: scale(.96); }
+
+/* ── Sunburst hero background ── */
+.hero-rays {
+  background-image: repeating-conic-gradient(
+    rgba(255,255,255,.55) 0deg 4deg,
+    rgba(214,234,248,.55) 4deg 8deg
+  );
+}
+
+/* ── Category badge colours ── */
+.badge-violence      { background:#fef2f2; color:#dc2626; border-color:#fca5a5; }
+.badge-slavery       { background:#fff7ed; color:#ea580c; border-color:#fdba74; }
+.badge-women         { background:#f5f3ff; color:#7c3aed; border-color:#c4b5fd; }
+.badge-punishment    { background:#fffbeb; color:#d97706; border-color:#fcd34d; }
+.badge-contradictions{ background:#eff6ff; color:#1d4ed8; border-color:#93c5fd; }
+.badge-children      { background:#fdf2f8; color:#be185d; border-color:#f9a8d4; }
+
+/* ── Pulse dot ── */
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.85)} }
+.pulse-dot { animation: pulse 2s ease-in-out infinite; }
