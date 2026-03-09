@@ -1,11 +1,11 @@
 "use client";
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { Copy, Check, Share2, ExternalLink, ImageDown, Quote } from "lucide-react";
+import { Copy, Check, Share2, ExternalLink, ImageDown, Quote, X, Download } from "lucide-react";
 
 /* ── DESIGN TOKENS ── */
 const CAT: Record<string, { color: string; bg: string; border: string; label: string }> = {
-  violence:      { color: "#991b1b", bg: "#fef2f2", border: "#7a7a7a", label: "Violence & Genocide" },
+  violence:      { color: "#991b1b", bg: "#fef2f2", border: "#fee2e2", label: "Violence & Genocide" },
   slavery:       { color: "#9a3412", bg: "#fff7ed", border: "#ffedd5", label: "Slavery" },
   women:         { color: "#5b21b6", bg: "#f5f3ff", border: "#ede9fe", label: "Women" },
   punishment:    { color: "#92400e", bg: "#fffbeb", border: "#fef3c7", label: "Punishment" },
@@ -18,12 +18,12 @@ function toast(msg: string) {
   el.textContent = msg;
   Object.assign(el.style, {
     position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
-    background: "#0f172a", color: "#fff", padding: "10px 20px", borderRadius: "10px",
-    fontSize: "13px", fontWeight:600, zIndex:"9999", boxShadow:"0 4px 20px rgba(0,0,0,.25)",
-    letterSpacing:".02em", transition:"opacity .3s",
+    background: "#0f172a", color: "#fff", padding: "12px 24px", borderRadius: "12px",
+    fontSize: "14px", fontWeight:600, zIndex:"9999", boxShadow:"0 10px 30px rgba(0,0,0,.3)",
+    letterSpacing:".02em", transition:"opacity .3s", whiteSpace: "nowrap"
   });
   document.body.appendChild(el);
-  setTimeout(() => { el.style.opacity="0"; setTimeout(() => el.remove(), 300); }, 2200);
+  setTimeout(() => { el.style.opacity="0"; setTimeout(() => el.remove(), 300); }, 3000);
 }
 
 interface Props { verse: any; compact?: boolean; featured?: boolean; }
@@ -32,6 +32,7 @@ interface Props { verse: any; compact?: boolean; featured?: boolean; }
 export default function VerseCard({ verse, compact = false, featured = false }: Props) {
   const [copied, setCopied]   = useState(false);
   const [shared, setShared]   = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const cardRef   = useRef<HTMLDivElement>(null);
 
   const style = CAT[verse.category] ?? { color: "#1e293b", bg: "#f8fafc", border: "#f1f5f9", label: verse.category };
@@ -55,154 +56,154 @@ export default function VerseCard({ verse, compact = false, featured = false }: 
     setTimeout(() => setShared(false), 2200);
   };
 
-  /* ── CANVAS BUILDER (Aesthetic Social Media Design) ── */
-  const buildCanvas = (): HTMLCanvasElement => {
-    const W = 1080, H = 1080;
+  /* ── HELPER: DOWNLOAD FILE ── */
+  const downloadCanvas = (canvas: HTMLCanvasElement, filename: string) => {
+    const a = document.createElement("a");
+    a.download = filename;
+    a.href = canvas.toDataURL("image/png", 1.0);
+    a.click();
+  };
+
+  /* ── CANVAS 1: THE QUOTE POSTER (Clean, High Quality) ── */
+  const buildQuoteCanvas = (): HTMLCanvasElement => {
+    const W = 1080, H = 1350; // Portrait 4:5 ratio
     const canvas = document.createElement("canvas");
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext("2d")!;
 
-    // 1. Background: Subtle Gradient based on category
-    // We make the background very light version of the category color
-    const grad = ctx.createLinearGradient(0, 0, W, H);
-    grad.addColorStop(0, "#ffffff");
-    grad.addColorStop(1, style.bg); // Fades into the category's light bg color
+    // 1. Full Bleed Gradient Background (Using the category color)
+    // We use the color as a base, fading to a slightly darker version for depth
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, style.color);
+    grad.addColorStop(1, adjustColor(style.color, -40)); // Darker at bottom
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // 2. Decorative background elements (Subtle circles)
-    ctx.save();
-    ctx.globalAlpha = 0.05;
-    ctx.fillStyle = style.color;
+    // 2. Subtle Noise/Texture overlay for "High Quality" feel
+    ctx.fillStyle = "rgba(255,255,255,0.05)";
+    for(let i=0; i<W; i+=4) {
+        for(let j=0; j<H; j+=4) {
+            if(Math.random() > 0.5) ctx.fillRect(i,j,2,2);
+        }
+    }
+
+    // 3. Category Badge (Top Center, minimal)
+    ctx.fillStyle = "rgba(255,255,255,0.2)";
     ctx.beginPath();
-    ctx.arc(W * 0.1, H * 0.1, 300, 0, Math.PI * 2);
+    (ctx as any).roundRect(W/2 - 100, 60, 200, 40, 20);
     ctx.fill();
-    ctx.beginPath();
-    ctx.arc(W * 0.9, H * 0.9, 400, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // 3. Top Branding
-    ctx.fillStyle = "#94a3b8"; // Muted slate
-    ctx.font = "600 24px Inter, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("THE WORD OF GOD", W / 2, 60);
-
-    // 4. Main Floating Card
-    const cardPadding = 60;
-    const cardW = W - (cardPadding * 2);
-    const cardH = H - 180; // Leave room for top/bottom branding
-    const cardX = cardPadding;
-    const cardY = 90;
-
-    // Drop Shadow
-    ctx.shadowColor = "rgba(0, 0, 0, 0.08)";
-    ctx.shadowBlur = 40;
-    ctx.shadowOffsetY = 20;
-
-    // Card Body (White)
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    (ctx as any).roundRect(cardX, cardY, cardW, cardH, 40);
-    ctx.fill();
-
-    // Reset Shadow for inner content
-    ctx.shadowColor = "transparent";
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
-
-    // 5. Card Accent Line (Top)
-    ctx.fillStyle = style.color;
-    ctx.beginPath();
-    (ctx as any).roundRect(cardX, cardY, cardW, 12, { topLeft: 40, topRight: 40, bottomLeft: 0, bottomRight: 0 });
-    ctx.fill();
-
-    // 6. Category Label (Inside Card, Top)
-    ctx.fillStyle = "#cbd5e1"; // Light grey text
-    ctx.font = "bold 18px Inter, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(style.label.toUpperCase(), W / 2, cardY + 60);
-
-    // 7. The Quote
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#1e293b"; // Dark slate for text
-    ctx.font = "italic 400 46px Georgia, serif"; // Elegant Serif
     
-    // Text Wrapping Logic
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "700 20px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(style.label.toUpperCase(), W/2, 87);
+
+    // 4. The Quote (Big, Bold, White)
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "italic 700 52px Georgia, serif"; // Large, impactful serif
+    
     const words = verse.text.split(" ");
-    let line = "";
-    const maxWidth = cardW - 100; // Side padding
-    let y = cardY + 160; // Start text lower
-    const lineHeight = 68;
-    const maxY = cardY + cardH - 140; // Stop before footer
+    let line = "", y = 250;
+    const maxWidth = W - 100;
+    const lineHeight = 72;
+    const safeBottom = H - 150; // Stop early to leave room for ref/branding
 
     for (const w of words) {
       const test = line + w + " ";
       if (ctx.measureText(test).width > maxWidth && line) {
-        ctx.fillText(line.trim(), cardX + 50, y);
-        line = w + " "; 
-        y += lineHeight;
-        if (y > maxY) {
-           ctx.fillText("…", cardX + 50, y); break; 
-        }
+        ctx.fillText(line.trim(), W/2, y);
+        line = w + " "; y += lineHeight;
+        if (y > safeBottom) { ctx.fillText("…", W/2, y); break; }
       } else { line = test; }
     }
-    if (y <= maxY) ctx.fillText(line.trim(), cardX + 50, y);
+    if (y <= safeBottom) ctx.fillText(line.trim(), W/2, y);
 
-    // 8. Divider Line
-    ctx.strokeStyle = "#f1f5f9";
+    // 5. Divider
+    ctx.strokeStyle = "rgba(255,255,255,0.3)";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cardX + 50, cardY + cardH - 90);
-    ctx.lineTo(cardX + cardW - 50, cardY + cardH - 90);
+    ctx.moveTo(W/2 - 50, y + 40);
+    ctx.lineTo(W/2 + 50, y + 40);
     ctx.stroke();
 
-    // 9. Reference (Bottom of Card)
-    ctx.textAlign = "center";
-    ctx.fillStyle = style.color;
-    ctx.font = "bold 32px Inter, sans-serif";
-    ctx.fillText(verse.reference.toUpperCase(), W / 2, cardY + cardH - 40);
+    // 6. Reference
+    ctx.font = "600 32px Inter, sans-serif";
+    ctx.fillText(verse.reference.toUpperCase(), W/2, y + 90);
 
-    // 10. Bottom Branding (Outside Card)
-    ctx.fillStyle = "#64748b";
-    ctx.font = "500 20px Inter, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("twog.io", W / 2, H - 40);
+    // 7. Minimal Branding (Bottom)
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.font = "500 24px Inter, sans-serif";
+    ctx.fillText("TWOG.IO", W/2, H - 50);
 
     return canvas;
   };
 
-  /* ── DOWNLOAD / SAVE LOGIC ── */
-  const handleCardAction = () => {
-    const canvas = buildCanvas();
+  /* ── CANVAS 2: THE HOOK IMAGE (Preset Only, No Text) ── */
+  const buildHookCanvas = async (): Promise<HTMLCanvasElement> => {
+    const W = 1080, H = 1350;
+    const canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
 
-    if (isMobile) {
-      canvas.toBlob(blob => {
-        if (!blob) return;
-        const file = new File([blob], `twog-${verse.id}.png`, { type: "image/png" });
-        
-        if (navigator.canShare?.({ files: [file] })) {
-          navigator.share({ files: [file], title: verse.reference, text: verse.shareText })
-            .catch(() => {});
-          return;
-        }
-        
-        const url = URL.createObjectURL(blob);
-        const win = window.open(url, "_blank");
-        if (win) toast("Long-press the image to Save");
+    // 1. Load Background Image
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = "/images/presetauto-image.jpg";
+
+    await new Promise<void>((resolve) => {
+        if (img.complete) resolve();
         else {
-          const a = document.createElement("a");
-          a.href = url; a.download = `twog-${verse.id}.png`; a.click();
+            img.onload = () => resolve();
+            img.onerror = () => resolve(); // Continue even if missing (fallback color)
         }
-      }, "image/png", 0.95);
+    });
+
+    // Draw Image (Cover Fit)
+    if (img.complete) {
+        const ratio = Math.max(W / img.width, H / img.height);
+        const centerShift_x = (W - img.width * ratio) / 2;
+        const centerShift_y = (H - img.height * ratio) / 2;
+        ctx.drawImage(img, 0, 0, img.width, img.height, centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
     } else {
-      const a = document.createElement("a");
-      a.download = `twog-${verse.id}.png`;
-      a.href = canvas.toDataURL("image/png");
-      a.click();
-      toast("Card downloaded!");
+        // Fallback if image missing
+        ctx.fillStyle = "#111";
+        ctx.fillRect(0,0,W,H);
+    }
+
+    // NO OVERLAYS, TEXT, OR ARROWS ADDED HERE
+
+    return canvas;
+  };
+
+  /* ── DOWNLOAD LOGIC HANDLER ── */
+  const handleDownloadOption = async (mode: 'single' | 'series') => {
+    setShowDownloadModal(false);
+    
+    // 1. Always Generate the Quote Card
+    const quoteCanvas = buildQuoteCanvas();
+    
+    if (mode === 'series') {
+        // SERIES MODE: Download Hook + Quote
+        toast("Generating your carousel...");
+        const hookCanvas = await buildHookCanvas();
+        
+        // Trigger downloads
+        downloadCanvas(hookCanvas, `TWOG-Hook-Slide.png`);
+        setTimeout(() => {
+            downloadCanvas(quoteCanvas, `TWOG-${verse.reference.replace(/[^a-zA-Z0-9]/g, '-')}.png`);
+            toast("Downloaded 2 slides! Don't forget to tag @twogword");
+        }, 500); // Slight delay to ensure naming order
+    } else {
+        // SINGLE MODE
+        downloadCanvas(quoteCanvas, `TWOG-${verse.reference.replace(/[^a-zA-Z0-9]/g, '-')}.png`);
+        toast("Image downloaded!");
     }
   };
+
+  /* ── COLOR ADJUSTMENT HELPER (Darken) ── */
+  function adjustColor(color: string, amount: number) {
+    return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+  }
 
   /* ── RENDER ── */
   return (
@@ -252,7 +253,7 @@ export default function VerseCard({ verse, compact = false, featured = false }: 
         </div>
       </div>
 
-      {/* Context Drawer */}
+      {/* Context Drawer (UI only, not on downloaded image) */}
       {!compact && verse.context && (
         <div className="mx-6 mb-6 p-4 rounded-xl bg-slate-50 border border-slate-100">
           <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Historical Context</h5>
@@ -265,13 +266,67 @@ export default function VerseCard({ verse, compact = false, featured = false }: 
         <div className="flex items-center gap-1">
           <ActionButton onClick={handleCopy} icon={copied ? <Check size={14}/> : <Copy size={14}/>} label={copied ? "Copied" : "Copy"} active={copied} color={style.color} />
           <ActionButton onClick={handleShare} icon={<Share2 size={14}/>} label={shared ? "Link Copied" : "Share"} active={shared} color={style.color} />
-          <ActionButton onClick={handleCardAction} icon={<ImageDown size={14}/>} label="Download Card" active={false} color={style.color} />
+          <ActionButton onClick={() => setShowDownloadModal(true)} icon={<ImageDown size={14}/>} label="Download" active={false} color={style.color} />
         </div>
 
         <Link href={`/verse/${verse.id}`} className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-tighter transition-all hover:shadow-lg active:scale-95 text-white" style={{ background: style.color }}>
           Explore <ExternalLink size={12} />
         </Link>
       </div>
+
+      {/* DOWNLOAD MODAL */}
+      {showDownloadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+            <button 
+                onClick={() => setShowDownloadModal(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+                <X size={20} />
+            </button>
+            
+            <div className="p-8">
+                <h3 className="text-2xl font-black text-slate-900 mb-2">Create Post</h3>
+                <p className="text-slate-500 mb-6 text-sm">Choose how you want to share this verse on social media.</p>
+
+                <div className="space-y-3">
+                    <button 
+                        onClick={() => handleDownloadOption('single')}
+                        className="w-full flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all group text-left"
+                    >
+                        <div className="p-3 bg-slate-100 rounded-lg text-slate-600 group-hover:text-blue-600 group-hover:bg-white transition-colors">
+                            <Download size={24} />
+                        </div>
+                        <div>
+                            <div className="font-bold text-slate-900">Single Image</div>
+                            <div className="text-xs text-slate-500">Just the verse poster.</div>
+                        </div>
+                    </button>
+
+                    <button 
+                        onClick={() => handleDownloadOption('series')}
+                        className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-blue-600 bg-blue-50 shadow-md hover:shadow-lg transition-all group text-left relative overflow-hidden"
+                    >
+                        <div className="absolute top-2 right-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">RECOMMENDED</div>
+                        <div className="p-3 bg-blue-600 rounded-lg text-white">
+                            <ImageDown size={24} />
+                        </div>
+                        <div>
+                            <div className="font-bold text-slate-900">Carousel Series</div>
+                            <div className="text-xs text-slate-600">Downloads a hook slide + the verse.</div>
+                        </div>
+                    </button>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+                    <p className="text-xs font-bold text-blue-600">
+                        Don't forget to tag us at <span className="underline">@twogword</span> on TikTok!
+                    </p>
+                </div>
+            </div>
+          </div>
+        </div>
+      )}
     </article>
   );
 }
